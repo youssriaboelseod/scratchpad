@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QTextEdit, QAction,
                              QFileDialog, QMessageBox, QStatusBar, QDialog, 
                              QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout)
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtGui import QIcon  # Import QIcon
+from PyQt5.QtGui import QIcon
 
 class FileHandler(QThread):
     """Thread for handling file operations."""
@@ -44,6 +44,8 @@ class FindReplaceDialog(QDialog):
         self.setWindowTitle("Find and Replace")
 
         icon_path = os.path.join(os.path.dirname(__file__), 'icons', 'scratchpad.png')
+        if getattr(sys, 'frozen', False):
+            icon_path = os.path.join(sys._MEIPASS, 'icons', 'scratchpad.png')
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
 
@@ -116,6 +118,8 @@ class ImportFromWebDialog(QDialog):
         self.setWindowTitle("Import From Web")
 
         icon_path = os.path.join(os.path.dirname(__file__), 'icons', 'scratchpad.png')
+        if getattr(sys, 'frozen', False):
+            icon_path = os.path.join(sys._MEIPASS, 'icons', 'scratchpad.png')
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
 
@@ -161,8 +165,8 @@ class ImportFromWebDialog(QDialog):
         return re.match(regex, url) is not None
 
 
-class Notepad(QMainWindow):
-    """Main Notepad application."""
+class Scratchpad(QMainWindow):
+    """Main Scratchpad application."""
     def __init__(self):
         super().__init__()
         self.current_file = None
@@ -175,6 +179,8 @@ class Notepad(QMainWindow):
         self.setGeometry(100, 100, 800, 600)
 
         icon_path = os.path.join(os.path.dirname(__file__), 'icons', 'scratchpad.png')
+        if getattr(sys, 'frozen', False):
+            icon_path = os.path.join(sys._MEIPASS, 'icons', 'scratchpad.png')
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
         else:
@@ -195,11 +201,13 @@ class Notepad(QMainWindow):
         
         self.createMenu()
         self.loadStyle()
-        self.setMenuIcons()  # Set icons for menu actions
+        self.setMenuIcons()
 
     def loadStyle(self):
         """Load CSS styles from 'style.css' if available."""
         css_file_path = os.path.join(os.path.dirname(__file__), 'style.css')
+        if getattr(sys, 'frozen', False):
+            css_file_path = os.path.join(sys._MEIPASS, 'style.css')
         try:
             with open(css_file_path, 'r') as css_file:
                 self.setStyleSheet(css_file.read())
@@ -218,7 +226,7 @@ class Notepad(QMainWindow):
 
     def createFileActions(self, menu):
         """Create file actions and add them to the given menu."""
-        self.actions = {}  # Store actions for icon setting
+        self.actions = {}
 
         newAction = QAction('New', self)
         newAction.setShortcut('Ctrl+N')
@@ -300,6 +308,8 @@ class Notepad(QMainWindow):
     def setMenuIcons(self):
         """Set icons for menu actions if available in the icons folder."""
         icons_folder = os.path.join(os.path.dirname(__file__), 'icons')
+        if getattr(sys, 'frozen', False):
+            icons_folder = os.path.join(sys._MEIPASS, 'icons')
         icon_files = {
             'copy': 'copy.png',
             'cut': 'cut.png',
@@ -316,11 +326,10 @@ class Notepad(QMainWindow):
             'undo': 'undo.png'
         }
 
-        if os.path.exists(icons_folder):
-            for action_name, icon_filename in icon_files.items():
-                icon_path = os.path.join(icons_folder, icon_filename)
-                if os.path.isfile(icon_path):
-                    self.actions[action_name].setIcon(QIcon(icon_path))  # Set the icon
+        for action_name, icon_filename in icon_files.items():
+            icon_path = os.path.join(icons_folder, icon_filename)
+            if os.path.isfile(icon_path):
+                self.actions[action_name].setIcon(QIcon(icon_path))
 
     def openFindReplaceDialog(self):
         """Open the find and replace dialog."""
@@ -388,6 +397,6 @@ class Notepad(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    notepad = Notepad()
-    notepad.show()
+    scratchpad = Scratchpad()
+    scratchpad.show()
     sys.exit(app.exec_())
