@@ -1,6 +1,9 @@
 
 # Scratchpad
 
+> [!NOTE]
+> All of our free software is designed to respect your privacy, while being as simple to use as possible. Our free software is licensed under the [BSD-3-Clause license](https://ravendevteam.org/files/BSD-3-Clause.txt). By using our software, you acknowledge and agree to the terms of the license.
+
 A simple, professional plaintext editor. Tailored for users who prioritize a simple, efficient, distraction-free editor. It is also heavily customizable, so you can personalize it to your liking.
 
 Made for Windows 10/11. Linux is likely supported but has not been tested.
