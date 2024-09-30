@@ -204,15 +204,27 @@ class Scratchpad(QMainWindow):
         self.setMenuIcons()
 
     def loadStyle(self):
-        """Load CSS styles from 'style.css' if available."""
-        css_file_path = os.path.join(os.path.dirname(__file__), 'style.css')
-        if getattr(sys, 'frozen', False):
-            css_file_path = os.path.join(sys._MEIPASS, 'style.css')
-        try:
-            with open(css_file_path, 'r') as css_file:
-                self.setStyleSheet(css_file.read())
-        except FileNotFoundError:
-            pass
+        """Load CSS styles from 'spstyle.css' in the user's home directory if available, otherwise use 'style.css' from the package."""
+        user_css_path = os.path.join(os.path.expanduser("~"), "spstyle.css")
+
+        if os.path.exists(user_css_path):
+            try:
+                with open(user_css_path, 'r') as css_file:
+                    self.setStyleSheet(css_file.read())
+                print(f"Loaded user CSS style from: {user_css_path}")
+            except Exception as e:
+                print(f"Error loading user CSS: {e}")
+
+        else:
+            css_file_path = os.path.join(os.path.dirname(__file__), 'style.css')
+            if getattr(sys, 'frozen', False):
+                css_file_path = os.path.join(sys._MEIPASS, 'style.css')
+
+            try:
+                with open(css_file_path, 'r') as css_file:
+                    self.setStyleSheet(css_file.read())
+            except FileNotFoundError:
+                print(f"Default CSS file not found: {css_file_path}")
 
     def createMenu(self):
         """Create the menu bar and connect actions."""
