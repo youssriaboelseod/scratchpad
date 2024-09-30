@@ -18,6 +18,8 @@ Linux is likely supported but has not been tested. Linux binaries will not be re
 
 ## Personalize The Editor
 
+You can find community-made themes for your editor [here](https://github.com/ravendevteam/scratchpad-themes).
+
 To personalize the editor, create **spstyle.css** in your user folder (*ex: C:\Users\Paul\spstyle.css*). Edit the file to include any CSS styling you want, save your changes, then restart Scratchpad. If done correctly, it should load your custom styling.
 
 > [!NOTE]
