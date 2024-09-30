@@ -6,7 +6,9 @@
 
 A simple, professional plaintext editor. Tailored for users who prioritize a simple, efficient, distraction-free editor. It is also heavily customizable, so you can personalize it to your liking.
 
-Made for Windows 10/11. Linux is likely supported but has not been tested.
+Made for Windows 10/11.
+
+Linux is likely supported but has not been tested. Linux binaries will not be released officially, so you will need to compile from source yourself to obtain a linux executable.
 
 ## Screenshots
 
