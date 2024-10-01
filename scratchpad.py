@@ -163,14 +163,62 @@ class ImportFromWebDialog(QDialog):
             r'(?::\d+)?'
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         return re.match(regex, url) is not None
+    
+class UnsavedWorkDialog(QDialog):
+    """Dialog for warning about unsaved changes."""
+    def __init__(self, parent=None):
+        super().__init__()
+        self.setWindowTitle("Unsaved Changes")
+
+        icon_path = os.path.join(os.path.dirname(__file__), 'icons', 'scratchpad.png')
+        if getattr(sys, 'frozen', False):
+            icon_path = os.path.join(sys._MEIPASS, 'icons', 'scratchpad.png')
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+
+        self.layout = QVBoxLayout(self)
+
+        self.message_label = QLabel("You have unsaved changes. What would you like to do?")
+        self.layout.addWidget(self.message_label)
+
+        self.button_layout = QHBoxLayout()
+        
+        self.save_button = QPushButton("Save Changes", self)
+        self.cancel_button = QPushButton("Cancel", self)
+        self.discard_button = QPushButton("Discard Changes", self)
+
+        self.button_layout.addWidget(self.save_button)
+        self.button_layout.addWidget(self.cancel_button)
+        self.button_layout.addWidget(self.discard_button)
+
+        self.layout.addLayout(self.button_layout)
+
+        self.save_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
+        self.discard_button.clicked.connect(self.discard_changes)
+
+        self.setLayout(self.layout)
+
+    def discard_changes(self):
+        """Handle discard changes action."""
+        self.reject()
+        QApplication.quit()
+
+    def accept(self):
+        """Override accept method to save changes before closing."""
+        super().accept()
+
+    def reject(self):
+        """Override reject method to handle canceling."""
+        super().reject()
 
 
 class Scratchpad(QMainWindow):
-    """Main Scratchpad application."""
     def __init__(self):
         super().__init__()
         self.current_file = None
         self.file_handler = None
+        self.unsaved_changes = False
         self.initUI()
 
     def initUI(self):
@@ -202,6 +250,25 @@ class Scratchpad(QMainWindow):
         self.createMenu()
         self.loadStyle()
         self.setMenuIcons()
+
+        self.textEdit.textChanged.connect(self.on_text_changed)
+
+    def on_text_changed(self):
+        """Update the unsaved changes flag when text is modified."""
+        self.unsaved_changes = True
+
+    def closeEvent(self, event):
+        if self.textEdit.document().isModified():
+            dialog = UnsavedWorkDialog(self)
+            result = dialog.exec_()
+
+            if result == QDialog.Accepted:
+                self.saveFile()
+                event.accept()
+            elif result == QDialog.Rejected:
+                event.ignore()
+            elif result == QDialog.Discarded:
+                event.accept()
 
     def loadStyle(self):
         """Load CSS styles from 'spstyle.css' in the user's home directory if available, otherwise use 'style.css' from the package."""
@@ -283,7 +350,7 @@ class Scratchpad(QMainWindow):
         self.actions['undo'] = undoAction
 
         redoAction = QAction('Redo', self)
-        redoAction.setShortcut('Ctrl+Y, Ctrl+Shift+Z')
+        redoAction.setShortcuts(['Ctrl+Y', 'Ctrl+Shift+Z'])
         redoAction.triggered.connect(self.textEdit.redo)
         menu.addAction(redoAction)
         self.actions['redo'] = redoAction
@@ -382,6 +449,8 @@ class Scratchpad(QMainWindow):
             self.file_handler = FileHandler(self.current_file)
             self.file_handler.save(self.textEdit.toPlainText())
             self.file_handler.file_saved.connect(self.showSaveStatus)
+        else:
+            self.saveFileAs()
 
     def saveFileAs(self):
         """Save the current file as a new file."""
