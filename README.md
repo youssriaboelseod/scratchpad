@@ -32,6 +32,7 @@ To personalize the editor, create **spstyle.css** in your user folder (*ex: C:\U
 - "Import theme" option to easily import CSS styles from a URL
 - Plug-in support
 - Support for different encoding formats (only supports UTF-8 at the moment)
-## Authors
+## Authors & Contributors
 
 - [Raven Development Team](https://ravendevteam.org/)
+- [LordImmaculate](https://github.com/lordimmaculate)
