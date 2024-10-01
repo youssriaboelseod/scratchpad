@@ -447,10 +447,18 @@ class Scratchpad(QMainWindow):
         """Save the current file."""
         if self.current_file:
             self.file_handler = FileHandler(self.current_file)
+            self.file_handler.file_saved.connect(self.handleSaveFile)
             self.file_handler.save(self.textEdit.toPlainText())
-            self.file_handler.file_saved.connect(self.showSaveStatus)
         else:
             self.saveFileAs()
+
+    def handleSaveFile(self, success):
+        """Handle the result of the save operation."""
+        if success:
+            self.unsaved_changes = False
+            self.updateStatusBar()
+        else:
+            QMessageBox.warning(self, "Error", "Failed to save file!")
 
     def saveFileAs(self):
         """Save the current file as a new file."""
@@ -460,20 +468,18 @@ class Scratchpad(QMainWindow):
             self.current_file = file_name
             self.saveFile()
 
-    def showSaveStatus(self, success):
-        """Show a message box indicating whether the file was saved successfully."""
-        if success:
-            QMessageBox.information(self, "Success", "File saved successfully!")
-        else:
-            QMessageBox.warning(self, "Error", "Failed to save file!")
-
-    def updateStatusBar(self):
+    def updateStatusBar(self, after_save=False):
         """Update the status bar with line and column information."""
         cursor = self.textEdit.textCursor()
         self.line = cursor.blockNumber() + 1
         self.column = cursor.columnNumber() + 1
         self.char_count = len(self.textEdit.toPlainText())
-        self.statusBar.showMessage(f"Line: {self.line} | Column: {self.column} | Characters: {self.char_count} | Encoding: {self.encoding}")
+
+        asterisk = ""
+        if not after_save:
+            asterisk = "*" if self.unsaved_changes else ""
+
+        self.statusBar.showMessage(f"Line: {self.line} | Column: {self.column} | Characters: {self.char_count} | Encoding: {self.encoding} {asterisk}")
 
 
 if __name__ == '__main__':
