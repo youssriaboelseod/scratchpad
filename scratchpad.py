@@ -109,7 +109,6 @@ class FindReplaceDialog(QDialog):
             content = self.text_edit.toPlainText()
             self.text_edit.setPlainText(content.replace(text_to_find, text_to_replace))
 
-
 class ImportFromWebDialog(QDialog):
     """Dialog for importing content from the web using a URL."""
     def __init__(self, text_edit):
@@ -164,13 +163,13 @@ class ImportFromWebDialog(QDialog):
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         return re.match(regex, url) is not None
 
-
 class Scratchpad(QMainWindow):
     """Main Scratchpad application."""
     def __init__(self):
         super().__init__()
         self.current_file = None
         self.file_handler = None
+        self.is_saved = True  # Track if the current text is saved or not
         self.initUI()
 
     def initUI(self):
@@ -198,10 +197,42 @@ class Scratchpad(QMainWindow):
         self.encoding = "UTF-8"
         
         self.textEdit.cursorPositionChanged.connect(self.updateStatusBar)
+        self.textEdit.textChanged.connect(self.onTextChanged)
         
         self.createMenu()
         self.loadStyle()
         self.setMenuIcons()
+
+    def onTextChanged(self):
+        """Handle changes in the text editor."""
+        if self.is_saved:
+            self.is_saved = False
+            self.updateWindowTitle()
+
+    def updateWindowTitle(self):
+        """Update the window title with an asterisk if there are unsaved changes."""
+        title = f"Scratchpad - {os.path.basename(self.current_file) if self.current_file else 'Unnamed'}"
+        if not self.is_saved:
+            title += " *"
+        self.setWindowTitle(title)
+
+    def closeEvent(self, event):
+        """Override the close event to prompt the user to save unsaved changes."""
+        if not self.is_saved:
+            dialog = QMessageBox(self)
+            dialog.setWindowTitle("Unsaved Changes")
+            dialog.setText("You have unsaved changes. Do you want to save them?")
+            dialog.setIcon(QMessageBox.Warning)
+            dialog.setStandardButtons(QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+            dialog.setDefaultButton(QMessageBox.Save)
+
+            response = dialog.exec_()
+
+            if response == QMessageBox.Save:
+                if not self.saveFile():
+                    event.ignore()
+            elif response == QMessageBox.Cancel:
+                event.ignore()
 
     def loadStyle(self):
         """Load CSS styles from 'spstyle.css' in the user's home directory if available, otherwise use 'style.css' from the package."""
