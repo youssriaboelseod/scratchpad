@@ -259,6 +259,7 @@ class Scratchpad(QMainWindow):
         self.actions['save'] = saveAction
 
         saveAsAction = QAction('Save As...', self)
+        saveAsAction.setShortcut('Ctrl+Shift+S')
         saveAsAction.triggered.connect(self.saveFileAs)
         menu.addAction(saveAsAction)
         self.actions['saveas'] = saveAsAction
@@ -270,9 +271,44 @@ class Scratchpad(QMainWindow):
 
         exitAction = QAction('Exit', self)
         exitAction.setShortcut('Ctrl+Q')
-        exitAction.triggered.connect(self.close)
+        exitAction.triggered.connect(self.closeEvent)
         menu.addAction(exitAction)
         self.actions['exit'] = exitAction
+    
+    # Override the closeEvent method to prompt the user to save unsaved changes
+    def closeEvent(self, event):
+        """Override the close event to prompt the user to save unsaved changes."""
+
+        # If no file is open and there is text in the editor
+        if self.current_file is None and self.textEdit.toPlainText().strip():
+            reply = QMessageBox.question(self, 'Save Changes', 'Do you want to save changes before exiting?', QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+
+            # If user wants to save changes
+            if reply == QMessageBox.Save:
+                # Save changes and exit
+                self.saveFileAs()
+
+            # If user wants to discard changes
+            elif reply == QMessageBox.Discard:
+                # Discard changes and exit
+                event.ignore()
+        
+        # If file is open and there are changes
+        if self.textEdit.toPlainText().strip() and self.current_file:
+            reply = QMessageBox.question(self, 'Save Changes', 'Do you want to save changes before exiting?', QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+
+            # If user wants to save changes
+            if reply == QMessageBox.Save:
+                self.saveFile()
+                event.ignore()      
+            
+            # If user wants to discard changes
+            elif reply == QMessageBox.Discard:
+                event.ignore()
+
+        # If no changes, exit
+        else:
+            event.accept()
 
     def createEditActions(self, menu):
         """Create edit actions and add them to the given menu."""
@@ -405,7 +441,6 @@ class Scratchpad(QMainWindow):
         self.column = cursor.columnNumber() + 1
         self.char_count = len(self.textEdit.toPlainText())
         self.statusBar.showMessage(f"Line: {self.line} | Column: {self.column} | Characters: {self.char_count} | Encoding: {self.encoding}")
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
