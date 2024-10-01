@@ -283,7 +283,7 @@ class Scratchpad(QMainWindow):
         self.actions['undo'] = undoAction
 
         redoAction = QAction('Redo', self)
-        redoAction.setShortcut('Ctrl+Y')
+        redoAction.setShortcut('Ctrl+Y, Ctrl+Shift+Z')
         redoAction.triggered.connect(self.textEdit.redo)
         menu.addAction(redoAction)
         self.actions['redo'] = redoAction
