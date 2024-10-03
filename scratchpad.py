@@ -329,6 +329,7 @@ class Scratchpad(QMainWindow):
         self.actions['save'] = saveAction
 
         saveAsAction = QAction('Save As...', self)
+        saveAsAction.setShortcut('Ctrl+Shift+S')
         saveAsAction.triggered.connect(self.saveFileAs)
         menu.addAction(saveAsAction)
         self.actions['saveas'] = saveAsAction
@@ -384,6 +385,7 @@ class Scratchpad(QMainWindow):
 
         findReplaceAction = QAction('Find and Replace...', self)
         findReplaceAction.triggered.connect(self.openFindReplaceDialog)
+        findReplaceAction.setShortcut('Ctrl+F')
         menu.addAction(findReplaceAction)
         self.actions['findreplace'] = findReplaceAction
 
