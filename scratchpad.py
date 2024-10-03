@@ -3,8 +3,8 @@ import os
 import re
 import requests
 from datetime import datetime
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QTextEdit, QAction, 
-                             QFileDialog, QMessageBox, QStatusBar, QDialog, 
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QTextEdit, QAction,
+                             QFileDialog, QMessageBox, QStatusBar, QDialog,
                              QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout)
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QIcon, QTextCursor, QTextDocument
@@ -167,7 +167,7 @@ class ImportFromWebDialog(QDialog):
             r'(?::\d+)?'
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         return re.match(regex, url) is not None
-    
+
 class UnsavedWorkDialog(QDialog):
     """Dialog for warning about unsaved changes."""
     def __init__(self, parent=None):
@@ -186,7 +186,7 @@ class UnsavedWorkDialog(QDialog):
         self.layout.addWidget(self.message_label)
 
         self.button_layout = QHBoxLayout()
-        
+
         self.save_button = QPushButton("Save Changes", self)
         self.cancel_button = QPushButton("Cancel", self)
         self.discard_button = QPushButton("Discard Changes", self)
@@ -247,9 +247,9 @@ class Scratchpad(QMainWindow):
         self.column = 1
         self.char_count = 0
         self.encoding = "UTF-8"
-        
+
         self.textEdit.cursorPositionChanged.connect(self.updateStatusBar)
-        
+
         self.createMenu()
         self.loadStyle()
         self.setMenuIcons()
@@ -354,7 +354,10 @@ class Scratchpad(QMainWindow):
         self.actions['undo'] = undoAction
 
         redoAction = QAction('Redo', self)
-        redoAction.setShortcuts(['Ctrl+Y', 'Ctrl+Shift+Z'])
+        if sys.platform != 'darwin':
+            redoAction.setShortcuts(['Ctrl+Y', 'Ctrl+Shift+Z'])
+        else:
+            redoAction.setShortcuts(['Ctrl+Shift+Z', 'Ctrl+Y'])
         redoAction.triggered.connect(self.textEdit.redo)
         menu.addAction(redoAction)
         self.actions['redo'] = redoAction
@@ -409,11 +412,11 @@ class Scratchpad(QMainWindow):
             'selectall': 'selectall.png',
             'undo': 'undo.png',
         }
-
-        for action_name, icon_filename in icon_files.items():
-            icon_path = os.path.join(icons_folder, icon_filename)
-            if os.path.isfile(icon_path):
-                self.actions[action_name].setIcon(QIcon(icon_path))
+        if sys.platform != 'darwin':
+            for action_name, icon_filename in icon_files.items():
+                icon_path = os.path.join(icons_folder, icon_filename)
+                if os.path.isfile(icon_path):
+                    self.actions[action_name].setIcon(QIcon(icon_path))
 
     def openFindReplaceDialog(self):
         """Open the find and replace dialog."""
