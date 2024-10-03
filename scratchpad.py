@@ -6,8 +6,8 @@ from datetime import datetime
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QTextEdit, QAction, 
                              QFileDialog, QMessageBox, QStatusBar, QDialog, 
                              QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout)
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtGui import QIcon, QTextCursor, QTextDocument
 
 class FileHandler(QThread):
     """Thread for handling file operations."""
@@ -82,16 +82,20 @@ class FindReplaceDialog(QDialog):
 
     def find_next(self):
         """Find the next occurrence of the text."""
-        text_to_find = self.find_input.text()
-        if text_to_find:
-            cursor = self.text_edit.textCursor()
-            cursor = self.text_edit.find(text_to_find, cursor)
+        text_to_find = self.find_input.text().strip()
 
-            if cursor.isNull():
+        if text_to_find:
+            options = QTextDocument.FindFlags()
+
+            found = self.text_edit.find(text_to_find, options)
+
+            if not found:
                 QMessageBox.information(self, "Not Found", "No more occurrences found.")
-                self.current_index = 0
             else:
+                cursor = self.text_edit.textCursor()
                 self.text_edit.setTextCursor(cursor)
+        else:
+            QMessageBox.warning(self, "Empty Search", "Please enter text to find.")
 
     def replace(self):
         """Replace the current occurrence."""
@@ -211,7 +215,6 @@ class UnsavedWorkDialog(QDialog):
     def reject(self):
         """Override reject method to handle canceling."""
         super().reject()
-
 
 class Scratchpad(QMainWindow):
     def __init__(self):
@@ -402,7 +405,7 @@ class Scratchpad(QMainWindow):
             'save': 'save.png',
             'saveas': 'saveas.png',
             'selectall': 'selectall.png',
-            'undo': 'undo.png'
+            'undo': 'undo.png',
         }
 
         for action_name, icon_filename in icon_files.items():
