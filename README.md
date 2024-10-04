@@ -32,12 +32,8 @@ To personalize the editor, create **spstyle.css** in your user folder (*ex: C:\U
 
 ## Roadmap
 
-- config.txt for advanced customization
-- Built-in encryption support
-- "Import theme" option to easily import CSS styles from a URL
-- Plug-in support
-- Support for different encoding formats (only supports UTF-8 at the moment)
+You can see all the features we will be adding and are working on [here](https://github.com/orgs/ravendevteam/projects/2/views/1).
+
 ## Authors & Contributors
 
 - [Raven Development Team](https://ravendevteam.org/)
-- [LordImmaculate](https://github.com/lordimmaculate)
