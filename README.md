@@ -37,3 +37,4 @@ You can see all the features we will be adding and are working on [here](https:/
 ## Authors & Contributors
 
 - [Raven Development Team](https://ravendevteam.org/)
+- [Icons by Icons8](https://icons8.com/)
