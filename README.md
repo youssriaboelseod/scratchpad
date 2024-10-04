@@ -33,7 +33,7 @@ To personalize the editor, create **spstyle.css** in your user folder (*ex: C:\U
 ## Roadmap
 
 You can see all the features we will be adding and are working on [here](https://github.com/orgs/ravendevteam/projects/2/views/1).
+
 ## Authors & Contributors
 
 - [Raven Development Team](https://ravendevteam.org/)
-- [LordImmaculate](https://github.com/lordimmaculate)
