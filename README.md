@@ -10,6 +10,11 @@ Made for Windows 10/11 and MacOS.
 
 Linux should be functional. Linux binaries will not be released officially however, so you will need to compile from source yourself to obtain a linux executable.
 
+## Installing
+Go to [Github Releases](https://github.com/ravendevteam/scratchpad/releases) and download the latest version for your platform. (Currently Windows or macOS)
+
+To compile from source, make sure you have Pyinstaller installed, and then run either build.bat, build-macos.sh or build-linux.sh
+
 ## Screenshots
 
 ![Demo Screenshot 1](https://raw.githubusercontent.com/ravendevteam/scratchpad/refs/heads/main/demo_screenshot_1.png)
