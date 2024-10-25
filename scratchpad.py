@@ -205,24 +205,41 @@ class UnsavedWorkDialog(QDialog):
 
     def discard_changes(self):
         """Handle discard changes action."""
-        self.reject()
-        QApplication.quit()
-
-    def accept(self):
-        """Override accept method to save changes before closing."""
-        super().accept()
-
-    def reject(self):
-        """Override reject method to handle canceling."""
-        super().reject()
+        self.done(2)
 
 class Scratchpad(QMainWindow):
-    def __init__(self):
+    def __init__(self, file_to_open=None):
         super().__init__()
-        self.current_file = None
+        self.current_file = file_to_open
         self.file_handler = None
         self.unsaved_changes = False
         self.initUI()
+
+        if file_to_open:
+            self.load_file_on_startup(file_to_open)
+
+    def load_file_on_startup(self, file_path):
+        """Load a file automatically on startup."""
+        if os.path.exists(file_path):
+            self.current_file = file_path
+            self.file_handler = FileHandler(file_path)
+            self.file_handler.file_content_loaded.connect(self.loadFileContent)
+            self.file_handler.start()
+        else:
+            QMessageBox.critical(self, "Error", f"File does not exist: {file_path}")
+
+    def closeEvent(self, event):
+        if self.textEdit.document().isModified():
+            dialog = UnsavedWorkDialog(self)
+            result = dialog.exec_()
+
+            if result == QDialog.Accepted:
+                self.saveFile()
+                event.accept()
+            elif result == QDialog.Rejected:
+                event.ignore()
+            elif result == 2:
+                event.accept()
 
     def initUI(self):
         """Initialize the UI components."""
@@ -492,6 +509,11 @@ class Scratchpad(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    scratchpad = Scratchpad()
+    
+    file_to_open = None
+    if len(sys.argv) > 1:
+        file_to_open = sys.argv[1]
+
+    scratchpad = Scratchpad(file_to_open)
     scratchpad.show()
     sys.exit(app.exec_())
