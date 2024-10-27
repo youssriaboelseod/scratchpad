@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import requests
+import validators
 from datetime import datetime
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QTextEdit, QAction,
                              QFileDialog, QMessageBox, QStatusBar, QDialog,
@@ -157,16 +158,8 @@ class ImportFromWebDialog(QDialog):
             QMessageBox.warning(self, "Invalid URL", "Please enter a valid HTTPS URL.")
 
     def is_valid_url(self, url):
-        """Check if the provided URL is a valid HTTPS URL."""
-        regex = re.compile(
-            r'^(https:\/\/)'
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
-            r'localhost|'
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'
-            r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'
-            r'(?::\d+)?'
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-        return re.match(regex, url) is not None
+        """Check if the provided URL is a valid HTTPS URL using validators library."""
+        return validators.url(url) and url.startswith("https://")
 
 class UnsavedWorkDialog(QDialog):
     """Dialog for warning about unsaved changes."""
