@@ -257,6 +257,8 @@ class Scratchpad(QMainWindow):
         self.textEdit = QTextEdit(self)
         self.setCentralWidget(self.textEdit)
 
+        self.textEdit.setAcceptRichText(False)
+
         self.statusBar = QStatusBar(self)
         self.setStatusBar(self.statusBar)
 
