@@ -3,6 +3,7 @@ import os
 import re
 import requests
 import validators
+from chardet.universaldetector import UniversalDetector
 from datetime import datetime
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QTextEdit, QAction,
                              QFileDialog, QMessageBox, QStatusBar, QDialog,
@@ -20,22 +21,22 @@ class FileHandler(QThread):
         self.file_path = file_path
 
     def run(self):
-        """Read the content of the file."""
+        """Read the content of the file with encoding detection."""
+        detector = UniversalDetector()
         try:
-            with open(self.file_path, 'r', encoding='utf-8') as file:
+            with open(self.file_path, 'rb') as file:
+                for line in file:
+                    detector.feed(line)
+                    if detector.done:
+                        break
+                detector.close()
+        
+            encoding = detector.result['encoding'] or 'utf-8'
+            with open(self.file_path, 'r', encoding=encoding, errors='replace') as file:
                 content = file.read()
-            self.file_content_loaded.emit(content, 'UTF-8')
+            self.file_content_loaded.emit(content, encoding)
         except Exception as e:
             self.file_content_loaded.emit(f"Error reading file: {e}", '')
-
-    def save(self, content):
-        """Save the content to the specified file."""
-        try:
-            with open(self.file_path, 'w', encoding='utf-8') as file:
-                file.write(content)
-            self.file_saved.emit(True)
-        except Exception as e:
-            self.file_saved.emit(False)
 
 class FindReplaceDialog(QDialog):
     """Dialog for Find and Replace functionality."""
@@ -258,7 +259,7 @@ class Scratchpad(QMainWindow):
         self.line = 1
         self.column = 1
         self.char_count = 0
-        self.encoding = "UTF-8"
+        self.encoding = None
 
         self.textEdit.cursorPositionChanged.connect(self.updateStatusBar)
 
@@ -460,8 +461,11 @@ class Scratchpad(QMainWindow):
         """Load the content into the text edit."""
         if encoding:
             self.encoding = encoding
-        self.textEdit.setPlainText(content)
-        self.setWindowTitle(f'Scratchpad - {os.path.basename(self.current_file)}')
+        if content.startswith("Error reading file"):
+            QMessageBox.critical(self, "Error", content)
+        else:
+            self.textEdit.setPlainText(content)
+            self.setWindowTitle(f'Scratchpad - {os.path.basename(self.current_file)}')
 
     def saveFile(self):
         """Save the current file."""
