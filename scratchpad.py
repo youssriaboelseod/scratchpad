@@ -1,10 +1,9 @@
 import sys
 import os
-import re
 import requests
 import validators
+import chardet
 from chardet.universaldetector import UniversalDetector
-from datetime import datetime
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QTextEdit, QAction,
                              QFileDialog, QMessageBox, QStatusBar, QDialog,
                              QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout)
@@ -21,22 +20,34 @@ class FileHandler(QThread):
         self.file_path = file_path
 
     def run(self):
-        """Read the content of the file with encoding detection."""
-        detector = UniversalDetector()
-        try:
-            with open(self.file_path, 'rb') as file:
-                for line in file:
-                    detector.feed(line)
-                    if detector.done:
-                        break
-                detector.close()
-        
-            encoding = detector.result['encoding'] or 'utf-8'
-            with open(self.file_path, 'r', encoding=encoding, errors='replace') as file:
-                content = file.read()
-            self.file_content_loaded.emit(content, encoding)
-        except Exception as e:
-            self.file_content_loaded.emit(f"Error reading file: {e}", '')
+            """Read the content of the file with encoding detection and incremental loading."""
+            detector = chardet.universaldetector.UniversalDetector()
+            try:
+                with open(self.file_path, 'rb') as file:
+                    while chunk := file.read(1024):
+                        detector.feed(chunk)
+                        if detector.done:
+                            break
+                    detector.close()
+                encoding = detector.result['encoding'] or 'utf-8'
+                with open(self.file_path, 'r', encoding=encoding, errors='replace') as file:
+                    content = ""
+                    chunk_size = 1024 * 1024
+                    while chunk := file.read(chunk_size):
+                        content += chunk
+                        self.file_content_loaded.emit(content, encoding)
+                self.file_content_loaded.emit(content, encoding)
+            except Exception as e:
+                self.file_content_loaded.emit(f"Error reading file: {e}", '')
+
+def load_icon(icon_name):
+    """Utility function to load icons."""
+    icon_path = os.path.join(os.path.dirname(__file__), 'icons', icon_name)
+    if getattr(sys, 'frozen', False):
+        icon_path = os.path.join(sys._MEIPASS, 'icons', icon_name)
+    if os.path.exists(icon_path):
+        return QIcon(icon_path)
+    return None
 
 class FindReplaceDialog(QDialog):
     """Dialog for Find and Replace functionality."""
@@ -44,12 +55,7 @@ class FindReplaceDialog(QDialog):
         super().__init__()
         self.text_edit = text_edit
         self.setWindowTitle("Find and Replace")
-
-        icon_path = os.path.join(os.path.dirname(__file__), 'icons', 'scratchpad.png')
-        if getattr(sys, 'frozen', False):
-            icon_path = os.path.join(sys._MEIPASS, 'icons', 'scratchpad.png')
-        if os.path.exists(icon_path):
-            self.setWindowIcon(QIcon(icon_path))
+        self.setWindowIcon(load_icon('scratchpad.png'))
 
         self.layout = QVBoxLayout(self)
 
@@ -85,17 +91,11 @@ class FindReplaceDialog(QDialog):
     def find_next(self):
         """Find the next occurrence of the text."""
         text_to_find = self.find_input.text().strip()
-
         if text_to_find:
             options = QTextDocument.FindFlags()
-
             found = self.text_edit.find(text_to_find, options)
-
             if not found:
                 QMessageBox.information(self, "Not Found", "No more occurrences found.")
-            else:
-                cursor = self.text_edit.textCursor()
-                self.text_edit.setTextCursor(cursor)
         else:
             QMessageBox.warning(self, "Empty Search", "Please enter text to find.")
 
@@ -122,12 +122,7 @@ class ImportFromWebDialog(QDialog):
         super().__init__()
         self.text_edit = text_edit
         self.setWindowTitle("Import From Web")
-
-        icon_path = os.path.join(os.path.dirname(__file__), 'icons', 'scratchpad.png')
-        if getattr(sys, 'frozen', False):
-            icon_path = os.path.join(sys._MEIPASS, 'icons', 'scratchpad.png')
-        if os.path.exists(icon_path):
-            self.setWindowIcon(QIcon(icon_path))
+        self.setWindowIcon(load_icon('scratchpad.png'))
 
         self.layout = QVBoxLayout(self)
 
@@ -167,12 +162,7 @@ class UnsavedWorkDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__()
         self.setWindowTitle("Unsaved Changes")
-
-        icon_path = os.path.join(os.path.dirname(__file__), 'icons', 'scratchpad.png')
-        if getattr(sys, 'frozen', False):
-            icon_path = os.path.join(sys._MEIPASS, 'icons', 'scratchpad.png')
-        if os.path.exists(icon_path):
-            self.setWindowIcon(QIcon(icon_path))
+        self.setWindowIcon(load_icon('scratchpad.png'))
 
         self.layout = QVBoxLayout(self)
 
@@ -234,19 +224,14 @@ class Scratchpad(QMainWindow):
                 event.ignore()
             elif result == 2:
                 event.accept()
+        else:
+            event.accept()
 
     def initUI(self):
         """Initialize the UI components."""
         self.setWindowTitle('Scratchpad - Unnamed')
         self.setGeometry(100, 100, 800, 600)
-
-        icon_path = os.path.join(os.path.dirname(__file__), 'icons', 'scratchpad.png')
-        if getattr(sys, 'frozen', False):
-            icon_path = os.path.join(sys._MEIPASS, 'icons', 'scratchpad.png')
-        if os.path.exists(icon_path):
-            self.setWindowIcon(QIcon(icon_path))
-        else:
-            print(f"Icon file not found: {icon_path}")
+        self.setWindowIcon(load_icon('scratchpad.png'))
 
         self.textEdit = QTextEdit(self)
         self.setCentralWidget(self.textEdit)
@@ -259,7 +244,7 @@ class Scratchpad(QMainWindow):
         self.line = 1
         self.column = 1
         self.char_count = 0
-        self.encoding = None
+        self.encoding = "UTF-8"
 
         self.textEdit.cursorPositionChanged.connect(self.updateStatusBar)
 
@@ -272,19 +257,6 @@ class Scratchpad(QMainWindow):
     def on_text_changed(self):
         """Update the unsaved changes flag when text is modified."""
         self.unsaved_changes = True
-
-    def closeEvent(self, event):
-        if self.textEdit.document().isModified():
-            dialog = UnsavedWorkDialog(self)
-            result = dialog.exec_()
-
-            if result == QDialog.Accepted:
-                self.saveFile()
-                event.accept()
-            elif result == QDialog.Rejected:
-                event.ignore()
-            elif result == QDialog.Discarded:
-                event.accept()
 
     def loadStyle(self):
         """Load CSS styles from 'spstyle.css' in the user's home directory if available, otherwise use 'style.css' from the package."""
@@ -450,12 +422,15 @@ class Scratchpad(QMainWindow):
     def openFile(self):
         """Open a file for editing."""
         options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open File", "", "Text Files (*.txt);;All Files (*)", options=options)
-        if file_name:
-            self.current_file = file_name
-            self.file_handler = FileHandler(file_name)
-            self.file_handler.file_content_loaded.connect(self.loadFileContent)
-            self.file_handler.start()
+        try:
+            file_name, _ = QFileDialog.getOpenFileName(self, "Open File", "", "Text Files (*.txt);;All Files (*)", options=options)
+            if file_name:
+                self.current_file = file_name
+                self.file_handler = FileHandler(file_name)
+                self.file_handler.file_content_loaded.connect(self.loadFileContent)
+                self.file_handler.start()
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to open file: {e}")
 
     def loadFileContent(self, content, encoding):
         """Load the content into the text edit."""
@@ -469,12 +444,38 @@ class Scratchpad(QMainWindow):
 
     def saveFile(self):
         """Save the current file."""
+        content = self.textEdit.toPlainText()
+        if self.encoding is None:
+            self.encoding = 'utf-8'
+        try:
+            content.encode(self.encoding)
+            if self.current_file:
+                self.saveFileWithEncoding(content, self.encoding)
+                self.unsaved_changes = False
+                self.updateStatusBar(after_save=True)
+            else:
+                self.saveFileAs()
+        except UnicodeEncodeError:
+            self.promptForEncoding(content)
+
+    def promptForEncoding(self, content):
+        """Prompt the user for encoding if characters can't be saved in UTF-8."""
+        encoding, ok = QInputDialog.getItem(self, "Choose Encoding", "Select Encoding", 
+                                             ["UTF-8", "ISO-8859-1", "Windows-1252", "UTF-16"], 0, False)
+        if ok:
+            self.saveFileWithEncoding(content, encoding)
+    
+    def saveFileWithEncoding(self, content, encoding):
+        """Save the file with the chosen encoding."""
         if self.current_file:
-            self.file_handler = FileHandler(self.current_file)
-            self.file_handler.file_saved.connect(self.handleSaveFile)
-            self.file_handler.save(self.textEdit.toPlainText())
-        else:
-            self.saveFileAs()
+            try:
+                with open(self.current_file, 'w', encoding=encoding) as file:
+                    file.write(content)
+                self.unsaved_changes = False
+                self.updateStatusBar(after_save=True)
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to save file with encoding '{encoding}': {e}")
+
 
     def handleSaveFile(self, success):
         """Handle the result of the save operation."""
@@ -487,10 +488,13 @@ class Scratchpad(QMainWindow):
     def saveFileAs(self):
         """Save the current file as a new file."""
         options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getSaveFileName(self, "Save File As", "", "Text Files (*.txt);;All Files (*)", options=options)
-        if file_name:
-            self.current_file = file_name
-            self.saveFile()
+        try:
+            file_name, _ = QFileDialog.getSaveFileName(self, "Save File As", "", "Text Files (*.txt);;All Files (*)", options=options)
+            if file_name:
+                self.current_file = file_name
+                self.saveFile()
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to save file: {e}")
 
     def updateStatusBar(self, after_save=False):
         """Update the status bar with line and column information."""
