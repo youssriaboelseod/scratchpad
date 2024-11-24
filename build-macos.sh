@@ -1,1 +1,1 @@
-nuitka --onefile --standalone --enable-plugin=pyqt5 --remove-output --include-data-files=style.css=style.css --include-data-dir=icons=icons --macos-app --output-dir=dist scratchpad.py
+nuitka --onefile --standalone --enable-plugin=pyqt5 --remove-output --include-data-files=style.css=style.css --include-data-dir=icons=icons --no-console --output-dir=dist scratchpad.py
