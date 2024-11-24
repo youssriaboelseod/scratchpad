@@ -23,6 +23,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install nuitka pyqt5
 
-    - name: Run custom build script
+    - name: Run build script
       run: |
         ./build-macos.sh
+
+    - name: Upload MacOS Executable
+      uses: actions/upload-artifact@v3
+      with:
+        name: macos-executable
+        path: ./dist/scratchpad.app
