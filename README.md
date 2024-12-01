@@ -13,7 +13,7 @@ Linux is likely functional, however it is not officially supported. Linux binari
 ## Installation
 See [Releases](https://github.com/ravendevteam/scratchpad/releases). Download the latest version for your platform (Windows or macOS currently available).
 
-To compile from source, make sure you have Python 3.12.4 or greater, and PyInstaller, then run either `build.bat`, `build-macos.sh` or `build-linux.sh`, depending on your platform (Windows, MacOS, or Linux).
+To compile from source, make sure you have Python 3.12.4 or greater, and Nuitka, then run either `build.bat`, `build-macos.sh` or `build-linux.sh`, depending on your platform (Windows, MacOS, or Linux).
 
 ## Screenshots
 
