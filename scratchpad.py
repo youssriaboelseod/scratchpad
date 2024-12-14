@@ -49,6 +49,33 @@ def load_icon(icon_name):
         return QIcon(icon_path)
     return None
 
+def loadStyle():
+    """Load CSS styles globally for the application."""
+    user_css_path = os.path.join(os.path.expanduser("~"), "spstyle.css")
+    stylesheet = None
+    if os.path.exists(user_css_path):
+        try:
+            with open(user_css_path, 'r') as css_file:
+                stylesheet = css_file.read()
+            print(f"Loaded user CSS style from: {user_css_path}")
+        except Exception as e:
+            print(f"Error loading user CSS: {e}")
+    else:
+        css_file_path = os.path.join(os.path.dirname(__file__), 'style.css')
+        if getattr(sys, 'frozen', False):
+            css_file_path = os.path.join(sys._MEIPASS, 'style.css')
+        try:
+            with open(css_file_path, 'r') as css_file:
+                stylesheet = css_file.read()
+        except FileNotFoundError:
+            print(f"Default CSS file not found: {css_file_path}")
+    if stylesheet:
+        app = QApplication.instance()
+        if app:
+            app.setStyleSheet(stylesheet)
+        else:
+            print("No QApplication instance found. Stylesheet not applied.")
+
 class FindReplaceDialog(QDialog):
     """Dialog for Find and Replace functionality."""
     def __init__(self, text_edit):
@@ -56,36 +83,27 @@ class FindReplaceDialog(QDialog):
         self.text_edit = text_edit
         self.setWindowTitle("Find and Replace")
         self.setWindowIcon(load_icon('scratchpad.png'))
-
         self.layout = QVBoxLayout(self)
-
         self.find_label = QLabel("Find:")
         self.find_input = QLineEdit(self)
         self.layout.addWidget(self.find_label)
         self.layout.addWidget(self.find_input)
-
         self.replace_label = QLabel("Replace with:")
         self.replace_input = QLineEdit(self)
         self.layout.addWidget(self.replace_label)
         self.layout.addWidget(self.replace_input)
-
         self.button_layout = QHBoxLayout()
         self.find_button = QPushButton("Find Next", self)
         self.replace_button = QPushButton("Replace", self)
         self.replace_all_button = QPushButton("Replace All", self)
-
         self.button_layout.addWidget(self.find_button)
         self.button_layout.addWidget(self.replace_button)
         self.button_layout.addWidget(self.replace_all_button)
-
         self.layout.addLayout(self.button_layout)
-
         self.find_button.clicked.connect(self.find_next)
         self.replace_button.clicked.connect(self.replace)
         self.replace_all_button.clicked.connect(self.replace_all)
-
         self.setLayout(self.layout)
-
         self.current_index = 0
 
     def find_next(self):
@@ -123,25 +141,19 @@ class ImportFromWebDialog(QDialog):
         self.text_edit = text_edit
         self.setWindowTitle("Import From Web")
         self.setWindowIcon(load_icon('scratchpad.png'))
-
         self.layout = QVBoxLayout(self)
-
         self.url_label = QLabel("Enter URL:")
         self.url_input = QLineEdit(self)
         self.layout.addWidget(self.url_label)
         self.layout.addWidget(self.url_input)
-
         self.fetch_button = QPushButton("Fetch", self)
         self.layout.addWidget(self.fetch_button)
-
         self.fetch_button.clicked.connect(self.fetch_from_web)
-
         self.setLayout(self.layout)
 
     def fetch_from_web(self):
         """Fetch the content from the provided URL and display it in the text editor."""
         url = self.url_input.text().strip()
-
         if self.is_valid_url(url):
             try:
                 response = requests.get(url)
@@ -163,24 +175,17 @@ class UnsavedWorkDialog(QDialog):
         super().__init__()
         self.setWindowTitle("Unsaved Changes")
         self.setWindowIcon(load_icon('scratchpad.png'))
-
         self.layout = QVBoxLayout(self)
-
         self.message_label = QLabel("You have unsaved changes. What would you like to do?")
         self.layout.addWidget(self.message_label)
-
         self.button_layout = QHBoxLayout()
-
         self.save_button = QPushButton("Save Changes", self)
         self.cancel_button = QPushButton("Cancel", self)
         self.discard_button = QPushButton("Discard Changes", self)
-
         self.button_layout.addWidget(self.save_button)
         self.button_layout.addWidget(self.cancel_button)
         self.button_layout.addWidget(self.discard_button)
-
         self.layout.addLayout(self.button_layout)
-
         self.save_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
         self.discard_button.clicked.connect(self.discard_changes)
@@ -198,7 +203,6 @@ class Scratchpad(QMainWindow):
         self.file_handler = None
         self.unsaved_changes = False
         self.initUI()
-
         if file_to_open:
             self.load_file_on_startup(file_to_open)
 
@@ -216,7 +220,6 @@ class Scratchpad(QMainWindow):
         if self.textEdit.document().isModified():
             dialog = UnsavedWorkDialog(self)
             result = dialog.exec_()
-
             if result == QDialog.Accepted:
                 self.saveFile()
                 event.accept()
@@ -232,98 +235,59 @@ class Scratchpad(QMainWindow):
         self.setWindowTitle('Scratchpad - Unnamed')
         self.setGeometry(100, 100, 800, 600)
         self.setWindowIcon(load_icon('scratchpad.png'))
-
         self.textEdit = QTextEdit(self)
         self.setCentralWidget(self.textEdit)
-
         self.textEdit.setAcceptRichText(False)
-
         self.statusBar = QStatusBar(self)
         self.setStatusBar(self.statusBar)
-
         self.line = 1
         self.column = 1
         self.char_count = 0
         self.encoding = "UTF-8"
-
         self.textEdit.cursorPositionChanged.connect(self.updateStatusBar)
-
         self.createMenu()
-        self.loadStyle()
         self.setMenuIcons()
-
         self.textEdit.textChanged.connect(self.on_text_changed)
 
     def on_text_changed(self):
         """Update the unsaved changes flag when text is modified."""
         self.unsaved_changes = True
 
-    def loadStyle(self):
-        """Load CSS styles from 'spstyle.css' in the user's home directory if available, otherwise use 'style.css' from the package."""
-        user_css_path = os.path.join(os.path.expanduser("~"), "spstyle.css")
-
-        if os.path.exists(user_css_path):
-            try:
-                with open(user_css_path, 'r') as css_file:
-                    self.setStyleSheet(css_file.read())
-                print(f"Loaded user CSS style from: {user_css_path}")
-            except Exception as e:
-                print(f"Error loading user CSS: {e}")
-
-        else:
-            css_file_path = os.path.join(os.path.dirname(__file__), 'style.css')
-            if getattr(sys, 'frozen', False):
-                css_file_path = os.path.join(sys._MEIPASS, 'style.css')
-
-            try:
-                with open(css_file_path, 'r') as css_file:
-                    self.setStyleSheet(css_file.read())
-            except FileNotFoundError:
-                print(f"Default CSS file not found: {css_file_path}")
-
     def createMenu(self):
         """Create the menu bar and connect actions."""
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
-
         self.createFileActions(fileMenu)
         editMenu = menubar.addMenu('&Edit')
-
         self.createEditActions(editMenu)
 
     def createFileActions(self, menu):
         """Create file actions and add them to the given menu."""
         self.actions = {}
-
         newAction = QAction('New', self)
         newAction.setShortcut('Ctrl+N')
         newAction.triggered.connect(self.newFile)
         menu.addAction(newAction)
         self.actions['new'] = newAction
-
         openAction = QAction('Open...', self)
         openAction.setShortcut('Ctrl+O')
         openAction.triggered.connect(self.openFile)
         menu.addAction(openAction)
         self.actions['open'] = openAction
-
         saveAction = QAction('Save', self)
         saveAction.setShortcut('Ctrl+S')
         saveAction.triggered.connect(self.saveFile)
         menu.addAction(saveAction)
         self.actions['save'] = saveAction
-
         saveAsAction = QAction('Save As...', self)
         saveAsAction.setShortcut('Ctrl+Shift+S')
         saveAsAction.triggered.connect(self.saveFileAs)
         menu.addAction(saveAsAction)
         self.actions['saveas'] = saveAsAction
-
         importFromWebAction = QAction('Import From Web', self)
         importFromWebAction.triggered.connect(self.importFromWeb)
         menu.addAction(importFromWebAction)
         self.actions['importfromweb'] = importFromWebAction
-
         exitAction = QAction('Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.triggered.connect(self.close)
@@ -337,7 +301,6 @@ class Scratchpad(QMainWindow):
         undoAction.triggered.connect(self.textEdit.undo)
         menu.addAction(undoAction)
         self.actions['undo'] = undoAction
-
         redoAction = QAction('Redo', self)
         if sys.platform != 'darwin':
             redoAction.setShortcuts(['Ctrl+Y', 'Ctrl+Shift+Z'])
@@ -346,31 +309,26 @@ class Scratchpad(QMainWindow):
         redoAction.triggered.connect(self.textEdit.redo)
         menu.addAction(redoAction)
         self.actions['redo'] = redoAction
-
         cutAction = QAction('Cut', self)
         cutAction.setShortcut('Ctrl+X')
         cutAction.triggered.connect(self.textEdit.cut)
         menu.addAction(cutAction)
         self.actions['cut'] = cutAction
-
         copyAction = QAction('Copy', self)
         copyAction.setShortcut('Ctrl+C')
         copyAction.triggered.connect(self.textEdit.copy)
         menu.addAction(copyAction)
         self.actions['copy'] = copyAction
-
         pasteAction = QAction('Paste', self)
         pasteAction.setShortcut('Ctrl+V')
         pasteAction.triggered.connect(self.textEdit.paste)
         menu.addAction(pasteAction)
         self.actions['paste'] = pasteAction
-
         selectAllAction = QAction('Select All', self)
         selectAllAction.setShortcut('Ctrl+A')
         selectAllAction.triggered.connect(self.textEdit.selectAll)
         menu.addAction(selectAllAction)
         self.actions['selectall'] = selectAllAction
-
         findReplaceAction = QAction('Find and Replace...', self)
         findReplaceAction.triggered.connect(self.openFindReplaceDialog)
         findReplaceAction.setShortcut('Ctrl+F')
@@ -512,6 +470,8 @@ class Scratchpad(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
+    loadStyle()
     
     file_to_open = None
     if len(sys.argv) > 1:

@@ -3,7 +3,7 @@
 */
 
 /* Text area */
-QTextEdit {
+QTextEdit, QDialog QTextEdit {
     font-family: 'Cascadia Code', 'Courier New', Courier, monospace;
     font-weight: 400;
     font-size: 14px;
@@ -14,7 +14,7 @@ QTextEdit {
 }
 
 /* Main window */
-QMainWindow {
+QMainWindow, QDialog {
     background-color: #ffffff;
 }
 
@@ -39,4 +39,43 @@ QMenuBar::item {
 /* Menu bar options when selected */
 QMenuBar::item:selected {
     background: #000000;
+}
+
+/* Buttons */
+QPushButton, QDialog QPushButton {
+    background: transparent;
+    border: 1px solid #cccccc;
+    color: #000000;
+    padding: 5px 10px;
+}
+
+/* Button on hover */
+QPushButton:hover, QDialog QPushButton:hover {
+    background-color: #f5f5f5;
+}
+
+/* Line Edit */
+QLineEdit, QDialog QLineEdit {
+    border: 1px solid #cccccc;
+    padding: 3px;
+    background-color: #ffffff;
+}
+
+/* Focused line edit */
+QLineEdit:focus, QDialog QLineEdit:focus {
+    border-color: #66aaff;
+}
+
+/* Scrollbar */
+QScrollBar:horizontal, QDialog QScrollBar:horizontal {
+    height: 10px;
+}
+
+QScrollBar:vertical, QDialog QScrollBar:vertical {
+    width: 10px;
+}
+
+QScrollBar::handle:horizontal, QScrollBar::handle:vertical, QDialog QScrollBar::handle:horizontal, QDialog QScrollBar::handle:vertical {
+    background: #cccccc;
+    border-radius: 5px;
 }
