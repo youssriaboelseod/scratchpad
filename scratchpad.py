@@ -42,9 +42,9 @@ class FileHandler(QThread):
 
 def load_icon(icon_name):
     """Utility function to load icons."""
-    icon_path = os.path.join(os.path.dirname(__file__), 'icons', icon_name)
+    icon_path = os.path.join(os.path.dirname(__file__), icon_name)
     if getattr(sys, 'frozen', False):
-        icon_path = os.path.join(sys._MEIPASS, 'icons', icon_name)
+        icon_path = os.path.join(sys._MEIPASS, icon_name)
     if os.path.exists(icon_path):
         return QIcon(icon_path)
     return None
@@ -246,7 +246,6 @@ class Scratchpad(QMainWindow):
         self.encoding = "UTF-8"
         self.textEdit.cursorPositionChanged.connect(self.updateStatusBar)
         self.createMenu()
-        self.setMenuIcons()
         self.textEdit.textChanged.connect(self.on_text_changed)
 
     def on_text_changed(self):
@@ -334,32 +333,6 @@ class Scratchpad(QMainWindow):
         findReplaceAction.setShortcut('Ctrl+F')
         menu.addAction(findReplaceAction)
         self.actions['findreplace'] = findReplaceAction
-
-    def setMenuIcons(self):
-        """Set icons for menu actions if available in the icons folder."""
-        icons_folder = os.path.join(os.path.dirname(__file__), 'icons')
-        if getattr(sys, 'frozen', False):
-            icons_folder = os.path.join(sys._MEIPASS, 'icons')
-        icon_files = {
-            'copy': 'copy.png',
-            'cut': 'cut.png',
-            'exit': 'exit.png',
-            'findreplace': 'findreplace.png',
-            'importfromweb': 'importfromweb.png',
-            'new': 'new.png',
-            'open': 'open.png',
-            'paste': 'paste.png',
-            'redo': 'redo.png',
-            'save': 'save.png',
-            'saveas': 'saveas.png',
-            'selectall': 'selectall.png',
-            'undo': 'undo.png',
-        }
-        if sys.platform != 'darwin':
-            for action_name, icon_filename in icon_files.items():
-                icon_path = os.path.join(icons_folder, icon_filename)
-                if os.path.isfile(icon_path):
-                    self.actions[action_name].setIcon(QIcon(icon_path))
 
     def openFindReplaceDialog(self):
         """Open the find and replace dialog."""
