@@ -284,6 +284,7 @@ class Scratchpad(QMainWindow):
         menu.addAction(saveAsAction)
         self.actions['saveas'] = saveAsAction
         importFromWebAction = QAction('Import From Web', self)
+        importFromWebAction.setShortcut('Ctrl+I')
         importFromWebAction.triggered.connect(self.importFromWeb)
         menu.addAction(importFromWebAction)
         self.actions['importfromweb'] = importFromWebAction
