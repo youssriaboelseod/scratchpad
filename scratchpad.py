@@ -1,3 +1,4 @@
+""" Import the necessary modules for the program to work """
 import sys
 import os
 import requests
@@ -10,8 +11,9 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QTextEdit, QAction,
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QIcon, QTextCursor, QTextDocument
 
+
+""" Thread for handling file-related operations. """
 class FileHandler(QThread):
-    """Thread for handling file operations."""
     file_content_loaded = pyqtSignal(str, str)
     file_saved = pyqtSignal(bool)
 
